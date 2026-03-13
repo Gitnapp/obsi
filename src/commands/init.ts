@@ -2,12 +2,13 @@ import chalk from 'chalk'
 import { existsSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
-import { saveConfig, configExists, RC_PATH } from '../utils/config.js'
+import { saveConfig, configExists, RC_PATH, VAULT_PATH } from '../utils/config.js'
 import { createInterface } from 'readline'
 
 export async function initCommand(vaultPath?: string) {
   if (configExists() && !vaultPath) {
     console.log(chalk.yellow(`Config already exists: ${RC_PATH}`))
+    console.log(`Vault: ${chalk.cyan(VAULT_PATH)}`)
     console.log(chalk.dim('Use "obsi init <vault-path>" to reconfigure'))
     return
   }
