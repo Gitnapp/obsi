@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { VAULT_PATH, vaultExists } from '../utils/config.js'
+import { VAULT_NAME, VAULT_PATH, vaultExists } from '../utils/config.js'
 import { isObsidianRunning, isObsidianCLIAvailable } from '../utils/detect.js'
 import { getEngine } from '../engine/index.js'
 
@@ -16,7 +16,7 @@ export async function statusCommand() {
 
   console.log(chalk.bold('obsi status'))
   console.log('─'.repeat(50))
-  console.log(`Vault:     ${chalk.cyan('Notee')} (${VAULT_PATH})`)
+  console.log(`Vault:     ${chalk.cyan(VAULT_NAME)} (${VAULT_PATH})`)
   console.log(`Obsidian:  ${running ? chalk.green('running') : chalk.yellow('not running')}${cliAvailable ? chalk.green(' (CLI available)') : ''}`)
   console.log(`Engine:    ${cliAvailable ? chalk.green('obsidian-cli') : chalk.blue('direct-file')}`)
   console.log(`Notes:     ${stats.totalNotes} | Inbox: ${stats.inboxCount} pending | Last modified: ${stats.lastModified}`)

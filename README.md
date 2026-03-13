@@ -2,6 +2,8 @@
 
 Agent-powered CLI for Obsidian note management. Create, search, collect, and organize notes from the terminal or any AI agent.
 
+By default, obsi now adapts to the vault's real folder layout instead of assuming classic PARA names. In the current `Notee` vault, that means folders like `1-Input/`, `2-Distilled/`, `Projects/`, `3-Archived/`, and `Periodic/` are detected automatically.
+
 ## Features
 
 - **Hybrid engine** — Uses Obsidian official CLI when running, falls back to direct file operations when not
@@ -72,15 +74,18 @@ Config is stored in `~/.obsirc.json`:
 {
   "vaultPath": "/path/to/vault",
   "para": {
-    "resources": "1. Resources",
-    "projects": "2. Projects",
-    "areas": "3. Areas",
-    "archive": "4. Archive"
+    "resources": "1-Input",
+    "projects": "Projects",
+    "areas": "2-Distilled",
+    "archive": "3-Archived"
   },
-  "inbox": "Inbox",
+  "inbox": "1-Input",
+  "daily": "Periodic",
   "knownAreas": ["技术与工具", "财富", "阅读", "..."]
 }
 ```
+
+`obsi init` inspects the target vault and writes the detected structure into config, so older PARA-style vaults and newer custom layouts can both work.
 
 ### `obsi note`
 
@@ -89,19 +94,19 @@ Create a new note in the vault.
 ```bash
 # Auto-classify by content keywords
 obsi note "Docker Compose 入门" --content "学习了 docker compose 的多容器编排..." --tags "docker,devops"
-# → 3. Areas/技术与工具/Docker Compose 入门.md
+# → 2-Distilled/技术与工具/Docker Compose 入门.md
 
 # Specify target area
 obsi note "Q1 投资复盘" --content "..." --area "财富"
-# → 3. Areas/财富/Q1 投资复盘.md
+# → 2-Distilled/财富/Q1 投资复盘.md
 
 # Target a project
 obsi note "Auth Flow Design" --content "..." --project "MktGenie"
-# → 2. Projects/MktGenie/Auth Flow Design.md
+# → Projects/MktGenie/Auth Flow Design.md
 
 # Save as resource
 obsi note "REST API Cheatsheet" --content "..." --resource "Cheatsheets"
-# → 1. Resources/Cheatsheets/REST API Cheatsheet.md
+# → 1-Input/Cheatsheets/REST API Cheatsheet.md
 
 # Read content from file
 obsi note "Meeting Notes" --from-file ./meeting.md --area "商业"
@@ -115,9 +120,9 @@ echo "Auto-generated content" | obsi note "Agent Output" --from-stdin
 | Flag | Description |
 |------|-------------|
 | `-c, --content <text>` | Note body text |
-| `-a, --area <name>` | Target area under `3. Areas/` |
-| `-p, --project <name>` | Target project under `2. Projects/` |
-| `-r, --resource <name>` | Target resource folder under `1. Resources/` |
+| `-a, --area <name>` | Target area under the detected areas folder, e.g. `2-Distilled/` |
+| `-p, --project <name>` | Target project under the detected projects folder, e.g. `Projects/` |
+| `-r, --resource <name>` | Target resource folder under the detected resources folder, e.g. `1-Input/` |
 | `-t, --tags <tags>` | Comma-separated tags |
 | `--from-file <path>` | Read content from a file |
 | `--from-stdin` | Read content from stdin |
@@ -189,7 +194,7 @@ obsi organize orphans
 
 # Show tag statistics
 obsi organize tags
-obsi organize tags --path "3. Areas/技术与工具"
+obsi organize tags --path "2-Distilled/技术与工具"
 ```
 
 ### `obsi status`
@@ -212,12 +217,12 @@ When no explicit `--area`, `--project`, or `--resource` flag is provided, obsi a
 
 | Keywords detected | Target |
 |-------------------|--------|
-| code, cli, api, agent, docker, git... | `3. Areas/技术与工具/` |
-| 投资, 股票, 基金, finance, trading... | `3. Areas/财富/` |
-| 读书, book, reading, 书评... | `3. Areas/阅读/` |
-| 健身, exercise, health, workout... | `3. Areas/健康/` |
-| 商业, business, marketing, 创业... | `3. Areas/商业/` |
-| No confident match | `Inbox/` + `#to-classify` tag |
+| code, cli, api, agent, docker, git... | detected areas folder, e.g. `2-Distilled/技术与工具/` |
+| 投资, 股票, 基金, finance, trading... | detected areas folder, e.g. `2-Distilled/财富/` |
+| 读书, book, reading, 书评... | detected areas folder, e.g. `2-Distilled/阅读/` |
+| 健身, exercise, health, workout... | detected areas folder, e.g. `2-Distilled/健康/` |
+| 商业, business, marketing, 创业... | detected areas folder, e.g. `2-Distilled/商业/` |
+| No confident match | detected inbox folder, e.g. `1-Input/` + `#to-classify` tag |
 
 Requires at least 2 keyword matches for classification confidence. This is intentionally conservative — better to land in Inbox than to be misclassified.
 
@@ -296,6 +301,7 @@ obsi/
 │   │   └── classifier.ts  # Auto-classification logic
 │   └── utils/
 │       ├── config.ts      # ~/.obsirc.json management
+│       ├── vault-structure.ts # Detect real vault folder layout
 │       ├── frontmatter.ts # YAML frontmatter helpers
 │       └── detect.ts      # Obsidian process detection
 ├── hooks/
