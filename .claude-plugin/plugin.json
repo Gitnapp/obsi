@@ -1,0 +1,7 @@
+{
+  "name": "obsi",
+  "description": "Agent-powered Obsidian note management. Create, search, collect, and organize notes via CLI commands.",
+  "author": {
+    "name": "bo"
+  }
+}

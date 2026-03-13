@@ -1,0 +1,26 @@
+{
+  "name": "obsi",
+  "version": "0.1.0",
+  "description": "Agent-powered CLI for Obsidian note management",
+  "type": "module",
+  "bin": {
+    "obsi": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "commander": "^13.0.0",
+    "execa": "^9.5.0",
+    "glob": "^11.0.0",
+    "gray-matter": "^4.0.3",
+    "chalk": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
