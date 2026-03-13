@@ -1,8 +1,8 @@
 import chalk from 'chalk'
-import { readFile, writeFile, readdir } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
 import { join, basename } from 'path'
 import { glob } from 'glob'
-import { getVaultPath, INBOX_DIR, KNOWN_AREAS } from '../utils/config.js'
+import { getVaultPath, INBOX_DIR, KNOWN_AREAS, PARA } from '../utils/config.js'
 import { parseNote } from '../utils/frontmatter.js'
 
 interface OrganizeCommandOptions {
@@ -70,7 +70,7 @@ async function generateMoc(area?: string) {
     return
   }
 
-  const areaPath = getVaultPath('3. Areas', area)
+  const areaPath = getVaultPath(PARA.areas, area)
   let files: string[]
   try {
     files = await glob('**/*.md', { cwd: areaPath })
@@ -127,7 +127,7 @@ async function generateMoc(area?: string) {
   const mocPath = join(areaPath, `${area}_MOC.md`)
   await writeFile(mocPath, moc, 'utf-8')
 
-  console.log(chalk.green(`MOC generated: `) + chalk.cyan(`3. Areas/${area}/${area}_MOC.md`))
+  console.log(chalk.green(`MOC generated: `) + chalk.cyan(`${PARA.areas}/${area}/${area}_MOC.md`))
   console.log(`  ${tagMap.size} tags, ${files.length - 1} notes, ${untagged.length} untagged`)
 }
 

@@ -1,8 +1,7 @@
 import { execa } from 'execa'
 import type { ExecutionEngine, NoteOptions, SearchOptions, SearchResult, VaultStats } from './types.js'
 import { DirectFileEngine } from './direct-file.js'
-
-const VAULT_NAME = 'Notee'
+import { VAULT_NAME } from '../utils/config.js'
 
 // ObsidianCLIEngine delegates to the official `obsidian` CLI when available,
 // falls back to DirectFileEngine for operations the CLI doesn't support well.

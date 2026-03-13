@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { KNOWN_AREAS, INBOX_DIR } from '../utils/config.js'
+import { KNOWN_AREAS, INBOX_DIR, PARA } from '../utils/config.js'
 
 // Keyword → area mapping
 const AREA_KEYWORDS: Record<string, string[]> = {
@@ -35,7 +35,7 @@ export function classifyNote(title: string, content: string, tags?: string[]): s
 
   // Require at least 2 keyword matches for confidence
   if (bestScore >= 2 && KNOWN_AREAS.includes(bestArea)) {
-    return join('3. Areas', bestArea)
+    return join(PARA.areas, bestArea)
   }
 
   // Default to inbox
