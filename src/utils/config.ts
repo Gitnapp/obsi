@@ -1,6 +1,7 @@
 import { homedir } from 'os'
 import { join } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { detectVaultStructure } from './vault-structure.js'
 
 const RC_PATH = join(homedir(), '.obsirc.json')
 
@@ -13,6 +14,7 @@ interface ObsiConfig {
     archive?: string
   }
   inbox?: string
+  daily?: string
   knownAreas?: string[]
 }
 
@@ -34,17 +36,20 @@ export function configExists(): boolean {
 }
 
 const config = loadConfig()
+const structure = detectVaultStructure(config?.vaultPath ?? '', config ?? undefined)
 
 export const VAULT_PATH = config?.vaultPath ?? ''
+export const VAULT_NAME = structure.vaultName
 
 export const PARA = {
-  resources: config?.para?.resources ?? '1. Resources',
-  projects: config?.para?.projects ?? '2. Projects',
-  areas: config?.para?.areas ?? '3. Areas',
-  archive: config?.para?.archive ?? '4. Archive',
+  resources: structure.resources,
+  projects: structure.projects,
+  areas: structure.areas,
+  archive: structure.archive,
 } as const
 
-export const INBOX_DIR = config?.inbox ?? 'Inbox'
+export const INBOX_DIR = structure.inbox
+export const DAILY_NOTES_DIR = structure.dailyNotes
 export const TEMPLATES_DIR = join(PARA.archive, '_Templates')
 
 export const KNOWN_AREAS: readonly string[] = config?.knownAreas ?? [

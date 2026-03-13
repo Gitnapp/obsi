@@ -4,6 +4,7 @@ import { join } from 'path'
 import { homedir } from 'os'
 import { saveConfig, configExists, RC_PATH, VAULT_PATH } from '../utils/config.js'
 import { createInterface } from 'readline'
+import { detectVaultStructure } from '../utils/vault-structure.js'
 
 export async function initCommand(vaultPath?: string) {
   if (configExists() && !vaultPath) {
@@ -41,18 +42,19 @@ export async function initCommand(vaultPath?: string) {
     process.exit(1)
   }
 
-  // Detect PARA structure
-  const knownAreas = detectAreas(vaultPath)
+  const structure = detectVaultStructure(vaultPath)
+  const knownAreas = detectAreas(vaultPath, structure.areas)
 
   saveConfig({
     vaultPath,
     para: {
-      resources: '1. Resources',
-      projects: '2. Projects',
-      areas: '3. Areas',
-      archive: '4. Archive',
+      resources: structure.resources,
+      projects: structure.projects,
+      areas: structure.areas,
+      archive: structure.archive,
     },
-    inbox: 'Inbox',
+    inbox: structure.inbox,
+    daily: structure.dailyNotes,
     knownAreas,
   })
 
@@ -90,8 +92,8 @@ function detectVaults(): string[] {
   return vaults
 }
 
-function detectAreas(vaultPath: string): string[] {
-  const areasDir = join(vaultPath, '3. Areas')
+function detectAreas(vaultPath: string, areasDirName: string): string[] {
+  const areasDir = join(vaultPath, areasDirName)
   if (!existsSync(areasDir)) return []
   try {
     return readdirSync(areasDir, { withFileTypes: true })
