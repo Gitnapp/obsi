@@ -14,17 +14,10 @@ export class ObsidianCLIEngine implements ExecutionEngine {
   }
 
   async createNote(opts: NoteOptions): Promise<string> {
-    try {
-      const args = ['create', `name=${opts.title}`]
-      if (opts.content) args.push(`content=${opts.content}`)
-      await this.obsidian(...args)
-
-      // Official CLI creates in vault root; we need to move to correct location
-      // For now, use direct file for full routing control
-      return this.fallback.createNote(opts)
-    } catch {
-      return this.fallback.createNote(opts)
-    }
+    // Obsidian CLI `create` always writes to vault root and doesn't support
+    // routing to subdirectories, so use DirectFileEngine which handles
+    // PARA-based routing (area/project/resource/inbox) correctly.
+    return this.fallback.createNote(opts)
   }
 
   async appendDaily(content: string, heading?: string): Promise<void> {
