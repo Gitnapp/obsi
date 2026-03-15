@@ -16,6 +16,10 @@ interface ObsiConfig {
   inbox?: string
   daily?: string
   knownAreas?: string[]
+  workflow?: {
+    enforceInputFirst?: boolean
+    autoArchive?: boolean
+  }
 }
 
 function loadConfig(): ObsiConfig | null {
@@ -49,22 +53,16 @@ export const PARA = {
 } as const
 
 export const INBOX_DIR = structure.inbox
+export const ARCHIVED_DIR = structure.archive
 export const DAILY_NOTES_DIR = structure.dailyNotes
 export const TEMPLATES_DIR = join(PARA.archive, '_Templates')
 
-export const KNOWN_AREAS: readonly string[] = config?.knownAreas ?? [
-  '健康',
-  '技术与工具',
-  '财富',
-  '阅读',
-  '唱歌',
-  '商业',
-  '服饰',
-  '英语与职业',
-  '饮食',
-  'TEM-8 英语专业八级',
-  '考研',
-]
+export const WORKFLOW_CONFIG = {
+  enforceInputFirst: config?.workflow?.enforceInputFirst ?? true,
+  autoArchive: config?.workflow?.autoArchive ?? true,
+}
+
+export const KNOWN_AREAS: readonly string[] = config?.knownAreas ?? []
 
 export function getVaultPath(...segments: string[]): string {
   return join(VAULT_PATH, ...segments)

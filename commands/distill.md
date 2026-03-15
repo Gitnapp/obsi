@@ -1,57 +1,45 @@
 ---
-allowed-tools: Bash(obsi *), WebFetch
-description: Summarize and save content to Obsidian 2-Distilled with AI restructuring
+allowed-tools: Bash(obsi *)
+description: Distill notes from input/ to distilled/ folder
 ---
 
-# /distill — Distill & Save to 2-Distilled
+# /distill — Distill Input Notes
 
-Summarize, structure, and save content to the `2-Distilled` folder. Apply AI judgment to extract key insights, restructure the material, and classify it into the right area.
+Process notes from the input/ folder to distilled/ folder, following the Input → Distillation → Archival workflow.
 
 ## Instructions
 
-1. Identify what to distill from the arguments:
-   - A URL → fetch it first with WebFetch, then summarize
-   - Raw text or conversation content → analyze and restructure
-   - A topic/idea → synthesize from the conversation context
-2. Produce a well-structured markdown summary with clear headings, key points, and takeaways.
-3. Classify into the right area:
-   - Technical / tools → `--area "技术与工具"`
-   - Finance / investing → `--area "财富"`
-   - Reading / books → `--area "阅读"`
-   - Health / fitness → `--area "健康"`
-   - Business / marketing → `--area "商业"`
-   - If unsure, omit `--area` and let obsi auto-classify
-4. Run:
+1. Ask the user which mode they want:
+   - **Interactive** — Review all pending inputs with suggestions
+   - **Auto** — Batch process all inputs with auto-classification
+   - **Single file** — Distill a specific note
+
+2. Run the appropriate command:
 
 ```bash
-obsi note "<title>" --content "<structured summary>" --tags "<tags>" --area "<area>" --source claude-code
+# Interactive mode (default)
+obsi distill
+
+# Auto-distill all inputs
+obsi distill --auto
+
+# Distill specific file
+obsi distill "input/<filename>.md"
+
+# Distill to specific area
+obsi distill "input/<filename>.md" --area "<area>"
 ```
 
-5. Report the created file path.
+3. Explain the workflow:
+   - Reads note from input/
+   - Creates refined note in distilled/ with proper classification
+   - Moves original to archived/ (if autoArchive is enabled)
 
-## Content structure
-
-```markdown
-## Summary
-
-One-paragraph synthesis of the core idea.
-
-## Key Points
-
-- Point 1
-- Point 2
-
-## Details
-
-(Supporting details, quotes, data)
-
-## Source
-
-[Optional link or origin]
-```
+4. After distillation, suggest:
+   - `obsi status` to check workflow compliance
+   - `obsi organize archived` to view archived notes
 
 ## Tips
-
-- For long content, write to a temp file first and use `--from-file`
-- Use `--project "<name>"` when the note belongs to an active project
-- Raw captures in `1-Input` can be distilled here with `/distill`
+- Interactive mode shows all pending inputs with suggested classifications
+- Auto mode is useful for batch processing multiple notes
+- Original notes are preserved in archived/ folder for reference

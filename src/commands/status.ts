@@ -19,5 +19,7 @@ export async function statusCommand() {
   console.log(`Vault:     ${chalk.cyan(VAULT_NAME)} (${VAULT_PATH})`)
   console.log(`Obsidian:  ${running ? chalk.green('running') : chalk.yellow('not running')}${cliAvailable ? chalk.green(' (CLI available)') : ''}`)
   console.log(`Engine:    ${cliAvailable ? chalk.green('obsidian-cli') : chalk.blue('direct-file')}`)
-  console.log(`Notes:     ${stats.totalNotes} | Inbox: ${stats.inboxCount} pending | Last modified: ${stats.lastModified}`)
+  console.log(`Notes:     ${stats.totalNotes} total`)
+  console.log(`Workflow:  ${stats.inboxCount} pending input | ${stats.archivedCount} archived`)
+  console.log(`Modified:  ${stats.lastModified}`)
 }

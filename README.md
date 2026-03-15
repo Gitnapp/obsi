@@ -1,15 +1,24 @@
 # obsi
 
-Agent-powered CLI for Obsidian note management. Create, search, and organize notes from the terminal or any AI agent.
+Agent-powered CLI for Obsidian note management following the **Input → Distillation → Archival** workflow.
 
-By default, obsi now adapts to the vault's real folder layout instead of assuming classic PARA names. In the current `Notee` vault, that means folders like `1-Input/`, `2-Distilled/`, `Projects/`, `3-Archived/`, and `Periodic/` are detected automatically.
+## Workflow Philosophy
+
+obsi enforces a three-phase knowledge management workflow:
+
+1. **Input Phase** — All raw materials go into `input/` folder (flat structure, no subfolders)
+2. **Distillation Phase** — Extract insights and create refined notes in `distilled/`
+3. **Archival Phase** — Move processed inputs to `archived/` for reference
+
+This workflow prevents clutter, maintains organization, and ensures sustainable knowledge management over time.
 
 ## Features
 
+- **Workflow-first design** — Enforces Input → Distillation → Archival by default
 - **Hybrid engine** — Uses Obsidian official CLI when running, falls back to direct file operations when not
-- **Smart routing** — Auto-classifies notes into PARA folders based on content keywords
+- **Smart classification** — Auto-classifies notes based on content when distilling
 - **Agent-friendly** — JSON-compatible output, stdin support, designed for AI agent workflows
-- **Claude Code integration** — Ships as a Claude Code plugin with `/obsi:note`, `/obsi:organize` slash commands
+- **Claude Code integration** — Ships as a Claude Code plugin with `/obsi:note`, `/obsi:distill` slash commands
 
 ## Install
 
@@ -81,23 +90,35 @@ Config is stored in `~/.obsirc.json`:
   },
   "inbox": "1-Input",
   "daily": "Periodic",
-  "knownAreas": ["技术与工具", "财富", "阅读", "..."]
+  "knownAreas": [],
+  "workflow": {
+    "enforceInputFirst": true,
+    "autoArchive": true
+  }
 }
 ```
 
-`obsi init` inspects the target vault and writes the detected structure into config, so older PARA-style vaults and newer custom layouts can both work.
+**Workflow Configuration:**
+- `enforceInputFirst` — When `true`, all notes go to `input/` by default (recommended)
+- `autoArchive` — When `true`, automatically moves processed notes to `archived/` after distillation
+
+`obsi init` inspects the target vault and writes the detected structure into config.
 
 ### `obsi note`
 
-Create a new note in the vault.
+Create a new note in the vault. **By default, all notes go to `input/` folder** (workflow-first design).
 
 ```bash
-# Auto-classify by content keywords
-obsi note "Docker Compose 入门" --content "学习了 docker compose 的多容器编排..." --tags "docker,devops"
-# → 2-Distilled/技术与工具/Docker Compose 入门.md
+# Default: Save to input/ folder (NEW BEHAVIOR)
+obsi note "Docker Tutorial" --content "Learning docker compose..."
+# → input/Docker Tutorial.md
 
-# Specify target area
-obsi note "Q1 投资复盘" --content "..." --area "财富"
+# Bypass input phase with --distilled flag (auto-classify)
+obsi note "Docker Tutorial" --content "..." --distilled
+# → 2-Distilled/<auto-classified-area>/Docker Tutorial.md
+
+# Specify target area directly (always distilled)
+obsi note "Q1 Investment Review" --content "..." --area "Finance"
 # → 2-Distilled/财富/Q1 投资复盘.md
 
 # Target a project
@@ -120,14 +141,58 @@ echo "Auto-generated content" | obsi note "Agent Output" --from-stdin
 | Flag | Description |
 |------|-------------|
 | `-c, --content <text>` | Note body text |
-| `-a, --area <name>` | Target area under the detected areas folder, e.g. `2-Distilled/` |
-| `-p, --project <name>` | Target project under the detected projects folder, e.g. `Projects/` |
-| `-r, --resource <name>` | Target resource folder under the detected resources folder, e.g. `1-Input/` |
+| `-a, --area <name>` | Target area (always distilled) |
+| `-p, --project <name>` | Target project (always distilled) |
+| `-r, --resource <name>` | Target resource folder |
+| `--distilled` | Auto-classify to distilled/ (bypass input phase) |
 | `-t, --tags <tags>` | Comma-separated tags |
 | `--from-file <path>` | Read content from a file |
 | `--from-stdin` | Read content from stdin |
 | `--source <source>` | Source label: `claude-code`, `web`, `manual`, `agent` |
 | `--type <type>` | Note type: `note`, `research`, `project` |
+
+### `obsi distill`
+
+Process notes from `input/` folder to `distilled/` folder.
+
+```bash
+# Interactive mode: Review pending inputs
+obsi distill
+# Shows all input notes with suggested classifications
+
+# Auto-distill all input notes
+obsi distill --auto
+# Batch processes all notes with auto-classification
+
+# Distill specific note
+obsi distill "input/Docker Tutorial.md"
+# → 2-Distilled/<auto-classified>/Docker Tutorial.md
+# → Moves original to archived/
+
+# Distill to specific area
+obsi distill "input/Meeting Notes.md" --area "Business"
+# → 2-Distilled/Business/Meeting Notes.md
+```
+
+**Workflow:**
+1. Reads note from `input/`
+2. Creates refined note in `distilled/` with proper classification
+3. Moves original to `archived/` (if `autoArchive` is enabled)
+
+### `obsi archive`
+
+Manually archive notes from `input/` to `archived/`.
+
+```bash
+# Archive specific note
+obsi archive "input/Old Notes.md"
+# → archived/Old Notes.md
+
+# Archive all input notes (with confirmation)
+obsi archive --all
+```
+
+Use this when you want to archive notes without distilling them.
 
 ### `obsi daily`
 
@@ -169,32 +234,37 @@ obsi search "docker" --tags "devops"
 Organize and maintain the vault.
 
 ```bash
-# Review inbox notes pending classification
-obsi organize inbox
+# Review input notes pending distillation
+obsi organize input
+
+# Show archived notes
+obsi organize archived
 
 # Generate Map of Content for an area
-obsi organize moc --area "技术与工具"
+obsi organize moc --area "Technology"
 
 # Find orphan notes (no tags, no links)
 obsi organize orphans
 
 # Show tag statistics
 obsi organize tags
-obsi organize tags --path "2-Distilled/技术与工具"
+obsi organize tags --path "2-Distilled/Technology"
 ```
 
 ### `obsi status`
 
-Show vault status and engine info.
+Show vault status and workflow compliance.
 
 ```bash
 obsi status
 # obsi status
 # ──────────────────────────────────────────────────
-# Vault:     Notee (/Users/bo/.../Obsidian/Notee)
+# Vault:     Notee (/Users/.../Obsidian/Notee)
 # Obsidian:  running (CLI available)
 # Engine:    obsidian-cli
-# Notes:     773 | Inbox: 0 pending | Last modified: 5m ago
+# Notes:     773 total
+# Workflow:  5 pending input | 120 archived
+# Modified:  2h ago
 ```
 
 ## Note Routing
@@ -243,15 +313,39 @@ Check the current engine with `obsi status`.
 
 ## Agent Integration
 
-obsi is designed to be called by any AI agent framework:
+obsi is designed for AI agent workflows. All commands support stdin and produce clean output.
 
 ```python
 # Python
 import subprocess
 result = subprocess.run(
-    ['obsi', 'note', 'Title', '--content', 'Content', '--area', '技术与工具'],
+    ['obsi', 'note', 'Title', '--content', 'Content'],
     capture_output=True, text=True
 )
+```
+
+```typescript
+// TypeScript
+import { execa } from 'execa'
+await execa('obsi', ['note', 'Title', '--content', 'Content'])
+```
+
+```bash
+# Shell script
+obsi daily --heading "## Agent Log" --content "Task completed at $(date)"
+```
+
+### Recommended Agent Workflow
+
+```bash
+# 1. Capture all raw inputs to input/ folder
+obsi note "Research Finding" --content "..." --source agent
+
+# 2. Let user review and distill manually, or
+obsi distill --auto  # Batch process
+
+# 3. Check workflow status
+obsi status
 ```
 
 ```typescript

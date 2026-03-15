@@ -7,6 +7,8 @@ import { dailyCommand } from './commands/daily.js'
 import { searchCommand } from './commands/search.js'
 import { organizeCommand } from './commands/organize.js'
 import { statusCommand } from './commands/status.js'
+import { distillCommand } from './commands/distill.js'
+import { archiveCommand } from './commands/archive.js'
 
 const program = new Command()
 
@@ -26,10 +28,11 @@ program
   .description('Create a new note in the vault')
   .argument('<title>', 'Note title')
   .option('-c, --content <text>', 'Note content')
-  .option('-a, --area <name>', 'Target area (e.g. 技术与工具)')
+  .option('-a, --area <name>', 'Target area')
   .option('-p, --project <name>', 'Target project')
   .option('-r, --resource <name>', 'Target resource folder')
   .option('--inbox', 'Save directly to inbox (1-Input), no auto-classify')
+  .option('--distilled', 'Auto-classify to distilled/ (bypass input phase)')
   .option('-t, --tags <tags>', 'Comma-separated tags')
   .option('--from-file <path>', 'Read content from file')
   .option('--from-stdin', 'Read content from stdin')
@@ -56,8 +59,8 @@ program
 
 program
   .command('organize')
-  .description('Organize vault: inbox, moc, orphans, tags')
-  .argument('<subcommand>', 'inbox | moc | orphans | tags')
+  .description('Organize vault: input, archived, moc, orphans, tags')
+  .argument('<subcommand>', 'input | archived | moc | orphans | tags')
   .option('-p, --path <path>', 'Target path for tags command')
   .option('-a, --area <name>', 'Area name for moc command')
   .action(organizeCommand)
@@ -66,5 +69,20 @@ program
   .command('status')
   .description('Show vault status')
   .action(statusCommand)
+
+program
+  .command('distill')
+  .description('Distill notes from input/ to distilled/')
+  .argument('[file]', 'Specific file to distill')
+  .option('-a, --area <name>', 'Target area for distillation')
+  .option('--auto', 'Auto-distill all input notes')
+  .action(distillCommand)
+
+program
+  .command('archive')
+  .description('Archive notes from input/ to archived/')
+  .argument('[file]', 'Specific file to archive')
+  .option('--all', 'Archive all input notes')
+  .action(archiveCommand)
 
 program.parse()

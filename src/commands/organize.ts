@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { readFile, writeFile } from 'fs/promises'
 import { join, basename } from 'path'
 import { glob } from 'glob'
-import { getVaultPath, INBOX_DIR, KNOWN_AREAS, PARA } from '../utils/config.js'
+import { getVaultPath, INBOX_DIR, KNOWN_AREAS, PARA, ARCHIVED_DIR } from '../utils/config.js'
 import { parseNote } from '../utils/frontmatter.js'
 
 interface OrganizeCommandOptions {
@@ -12,8 +12,12 @@ interface OrganizeCommandOptions {
 
 export async function organizeCommand(subcommand: string, opts: OrganizeCommandOptions) {
   switch (subcommand) {
+    case 'input':
     case 'inbox':
-      await organizeInbox()
+      await organizeInput()
+      break
+    case 'archived':
+      await showArchived()
       break
     case 'moc':
       await generateMoc(opts.area)
@@ -26,26 +30,26 @@ export async function organizeCommand(subcommand: string, opts: OrganizeCommandO
       break
     default:
       console.log(chalk.yellow('Unknown subcommand: ' + subcommand))
-      console.log('Available: inbox, moc, orphans, tags')
+      console.log('Available: input, archived, moc, orphans, tags')
   }
 }
 
-async function organizeInbox() {
+async function organizeInput() {
   const inboxPath = getVaultPath(INBOX_DIR)
   let files: string[]
   try {
     files = await glob('*.md', { cwd: inboxPath })
   } catch {
-    console.log(chalk.green('Inbox is empty or does not exist.'))
+    console.log(chalk.green('Input folder is empty or does not exist.'))
     return
   }
 
   if (files.length === 0) {
-    console.log(chalk.green('Inbox is empty!'))
+    console.log(chalk.green('Input folder is empty!'))
     return
   }
 
-  console.log(chalk.bold(`Inbox: ${files.length} notes pending\n`))
+  console.log(chalk.bold(`Input: ${files.length} notes pending\n`))
   for (const file of files) {
     const raw = await readFile(join(inboxPath, file), 'utf-8')
     const { frontmatter, body } = parseNote(raw)
@@ -60,13 +64,42 @@ async function organizeInbox() {
     console.log()
   }
 
-  console.log(chalk.dim('Use "obsi note <title> --area <area>" to reclassify, or move files manually.'))
+  console.log(chalk.dim('Use "obsi distill" to process these notes'))
+  console.log(chalk.dim('Use "obsi archive <file>" to archive without distilling'))
+}
+
+async function showArchived() {
+  const archivedPath = getVaultPath(ARCHIVED_DIR)
+  let files: string[]
+  try {
+    files = await glob('*.md', { cwd: archivedPath })
+  } catch {
+    console.log(chalk.yellow('Archived folder is empty or does not exist.'))
+    return
+  }
+
+  if (files.length === 0) {
+    console.log(chalk.green('No archived notes!'))
+    return
+  }
+
+  console.log(chalk.bold(`Archived: ${files.length} notes\n`))
+  for (const file of files.slice(0, 20)) {
+    console.log(chalk.dim('  ' + file))
+  }
+  if (files.length > 20) {
+    console.log(chalk.dim(`  ... and ${files.length - 20} more`))
+  }
 }
 
 async function generateMoc(area?: string) {
   if (!area) {
-    console.log(chalk.yellow('Specify an area: obsi organize moc --area "技术与工具"'))
-    console.log(`Available: ${KNOWN_AREAS.join(', ')}`)
+    console.log(chalk.yellow('Specify an area: obsi organize moc --area "<area-name>"'))
+    if (KNOWN_AREAS.length > 0) {
+      console.log(`Available: ${KNOWN_AREAS.join(', ')}`)
+    } else {
+      console.log(chalk.dim('No areas configured in ~/.obsirc.json'))
+    }
     return
   }
 

@@ -1,16 +1,17 @@
 ---
 allowed-tools: Bash(obsi *)
-description: Organize Obsidian vault - process inbox, generate MOC, find orphans
+description: Organize Obsidian vault - process input, show archived, generate MOC, find orphans
 ---
 
 # /organize — Organize Obsidian Vault
 
-Help organize the Obsidian vault.
+Help organize the Obsidian vault following the Input → Distillation → Archival workflow.
 
 ## Instructions
 
 1. Ask the user which operation they want, or infer from context:
-   - **inbox** — Process pending notes in the detected inbox folder (for example `1-Input`)
+   - **input** — Review pending notes in the input folder
+   - **archived** — Show archived notes
    - **moc** — Generate/update Map of Content for an area
    - **orphans** — Find notes with no tags or links
    - **tags** — Show tag statistics
@@ -18,16 +19,25 @@ Help organize the Obsidian vault.
 2. Run the appropriate command:
 
 ```bash
-obsi organize inbox
+obsi organize input
+obsi organize archived
 obsi organize moc --area "<area name>"
 obsi organize orphans
 obsi organize tags [--path "<path>"]
 ```
 
-3. For inbox processing:
+3. For input processing:
    - Show the list of pending notes
-   - For each note, suggest a classification
-   - Help the user move notes to the right detected location
+   - Suggest using `obsi distill` to process them
+   - Or help user distill specific notes with `obsi distill "<file>" --area "<area>"`
 
-## Available areas for MOC:
-健康, 技术与工具, 财富, 阅读, 唱歌, 商业, 服饰, 英语与职业, 饮食
+4. For archived notes:
+   - Show the list of archived notes
+   - These are processed inputs that have been distilled
+
+## Workflow Commands
+
+Remind users of the full workflow:
+- `obsi organize input` — Review pending inputs
+- `obsi distill` — Process inputs to distilled
+- `obsi organize archived` — View archived notes

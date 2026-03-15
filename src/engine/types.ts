@@ -5,6 +5,7 @@ export interface NoteOptions {
   project?: string
   resource?: string
   inbox?: boolean
+  distilled?: boolean
   tags?: string[]
   source?: 'claude-code' | 'web' | 'manual' | 'agent'
   type?: 'note' | 'research' | 'project' | 'daily' | 'moc'
@@ -25,6 +26,7 @@ export interface SearchResult {
 export interface VaultStats {
   totalNotes: number
   inboxCount: number
+  archivedCount: number
   lastModified: string
 }
 

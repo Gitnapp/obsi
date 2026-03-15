@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import { join, basename, relative } from 'path'
 import { glob } from 'glob'
 import type { ExecutionEngine, NoteOptions, SearchOptions, SearchResult, VaultStats } from './types.js'
-import { DAILY_NOTES_DIR, getVaultPath, INBOX_DIR, PARA } from '../utils/config.js'
+import { DAILY_NOTES_DIR, getVaultPath, INBOX_DIR, PARA, ARCHIVED_DIR } from '../utils/config.js'
 import { buildNoteContent, createFrontmatter, parseNote } from '../utils/frontmatter.js'
 import { classifyNote } from '../routing/classifier.js'
 
@@ -120,11 +120,11 @@ export class DirectFileEngine implements ExecutionEngine {
   async getStats(): Promise<VaultStats> {
     const files = await glob('**/*.md', { cwd: getVaultPath() })
     const inboxFiles = await glob('*.md', { cwd: getVaultPath(INBOX_DIR) }).catch(() => [])
+    const archivedFiles = await glob('*.md', { cwd: getVaultPath(ARCHIVED_DIR) }).catch(() => [])
 
     let lastModified = ''
     try {
       let latestTime = 0
-      // Sample recent files only (full scan too slow)
       const sample = files.slice(0, 50)
       for (const f of sample) {
         const s = await stat(getVaultPath(f))
@@ -140,19 +140,28 @@ export class DirectFileEngine implements ExecutionEngine {
     return {
       totalNotes: files.length,
       inboxCount: inboxFiles.length,
+      archivedCount: archivedFiles.length,
       lastModified,
     }
   }
 
   private resolveTargetDir(opts: NoteOptions): string {
+    // Explicit inbox flag
     if (opts.inbox) return INBOX_DIR
+    
+    // Explicit targets (always distilled)
     if (opts.area) return join(PARA.areas, opts.area)
     if (opts.project) return join(PARA.projects, opts.project)
     if (opts.resource) return join(PARA.resources, opts.resource)
 
-    // Auto-classify
-    const classified = classifyNote(opts.title, opts.content, opts.tags)
-    return classified
+    // --distilled flag: use auto-classification
+    if (opts.distilled) {
+      const classified = classifyNote(opts.title, opts.content, opts.tags)
+      return classified
+    }
+
+    // Default: input folder (AGENTS.md workflow)
+    return INBOX_DIR
   }
 }
 
